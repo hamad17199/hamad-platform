@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الأستاذ حمد محمد عبدالله</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-body: #eef2f7;
+            --bg-card: #FFFFFF;
+            --dark-blue: #0A192F;
+            --light-blue: #112240;
+            --gold: #D4AF37;
+            --text-main: #0A192F;
+            --text-muted: #475569;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --border-color: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --dark-blue: #020617;
+            --light-blue: #0f172a;
+            --gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --input-bg: rgba(15, 23, 42, 0.9);
+            --border-color: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; transition: background-color 0.3s, color 0.3s; }
+
+        body {
+            background-color: var(--bg-body);
+            background-image: 
+                linear-gradient(rgba(10, 25, 47, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 25, 47, 0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-blue); color: var(--gold);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; animation: fadeOut 3s forwards; pointer-events: none;
+        }
+        .welcome-screen i { font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite; }
+        .welcome-screen h1 { font-size: 30px; font-weight: 900; }
+        @keyframes fadeOut { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+        .progress-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 6px; background: var(--bg-card); z-index: 1000;
+        }
+        .progress-bar { height: 100%; background: var(--gold); width: 0%; transition: width 0.4s ease; }
+        .progress-text { position: fixed; top: 10px; right: 20px; background: var(--gold); color: var(--dark-blue); padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 1000;}
+
+        .floating-controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
+        .float-btn {
+            width: 45px; height: 45px; border-radius: 50%; background: var(--dark-blue); color: var(--gold);
+            border: 2px solid var(--gold); cursor: pointer; display: flex; justify-content: center; align-items: center;
+            font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .float-btn:hover { background: var(--gold); color: var(--dark-blue); transform: scale(1.1); }
+        #scrollTopBtn { display: none; }
+
+        .main-container {
+            display: flex; flex-wrap: wrap; background: var(--bg-card); width: 100%; max-width: 1100px;
+            border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.15); overflow: hidden; position: relative; z-index: 10;
+        }
+
+        .profile-section {
+            flex: 1; background: linear-gradient(135deg, var(--dark-blue), var(--light-blue)); color: white;
+            padding: 50px 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; min-width: 300px;
+        }
+        .bg-animated-icons { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .bg-animated-icons i { position: absolute; color: rgba(212, 175, 55, 0.12); bottom: -100px; animation: floatUp 15s linear infinite; }
+        .bg-animated-icons i:nth-child(1) { left: 5%; font-size: 90px; animation-duration: 14s; }
+        .bg-animated-icons i:nth-child(2) { left: 25%; font-size: 60px; animation-duration: 19s; animation-delay: 2s; }
+        .bg-animated-icons i:nth-child(3) { left: 65%; font-size: 120px; animation-duration: 16s; animation-delay: 4s; }
+        @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10%, 90% { opacity: 1; } 100% { transform: translateY(-900px) rotate(360deg); opacity: 0; } }
+
+        .profile-content { z-index: 1; display: flex; flex-direction: column; align-items: center; }
+        .logo-icon { font-size: 35px; color: var(--gold); margin-bottom: 15px; animation: bounce 2s infinite ease-in-out; }
+        
+        .profile-img { 
+            width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--gold); 
+            object-fit: cover; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3); 
+            background-color: #f1f5f9; pointer-events: none; 
+        }
+        
+        .profile-section h2 { font-size: 24px; color: var(--gold); margin-bottom: 10px; font-weight: 700; }
+        .profile-section p { font-size: 14px; margin-bottom: 30px; color: #cbd5e1; line-height: 1.6; }
+        .social-icons { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .social-icons a { display: flex; justify-content: center; align-items: center; width: 45px; height: 45px; background: rgba(255,255,255,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; font-size: 20px; text-decoration: none; }
+        .social-icons a:hover { transform: translateY(-5px); background: var(--gold); color: var(--dark-blue); }
+
+        .form-section { flex: 2; padding: 40px; background: var(--bg-card); position: relative; overflow: hidden; }
+        .form-watermarks { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0; }
+        .form-watermarks i { position: absolute; color: var(--text-muted); opacity: 0.03; }
+        .form-watermarks .fa-map-location-dot { top: -20px; right: -20px; font-size: 180px; transform: rotate(-10deg); }
+        .form-watermarks .fa-compass { bottom: -30px; left: -20px; font-size: 160px; transform: rotate(25deg); }
+        
+        .form-content-wrapper { position: relative; z-index: 10; }
+        .form-section h3 { color: var(--text-main); margin-bottom: 25px; font-size: 22px; text-align: center; position: relative; padding-bottom: 10px; }
+        .form-section h3::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 3px; background: var(--gold); border-radius: 2px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .input-group { margin-bottom: 5px; }
+        .full-width { grid-column: 1 / -1; }
+        .input-group label { display: block; margin-bottom: 6px; color: var(--text-main); font-weight: 600; font-size: 13px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gold); }
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%; padding: 10px 35px 10px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-main);
+        }
+        .input-group textarea { resize: vertical; min-height: 80px; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); }
+
+        @keyframes dropdownPulse {
+            0% { transform: scale(1); border-color: var(--gold); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            50% { transform: scale(1.02); border-color: var(--gold); box-shadow: 0 0 10px rgba(212, 175, 55, 0.6); }
+            100% { transform: scale(1); border-color: var(--border-color); box-shadow: none; }
+        }
+        .dynamic-animate { animation: dropdownPulse 0.5s ease-in-out; }
+
+        .consent-box { display: flex; align-items: center; gap: 10px; background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px dashed var(--gold); }
+        .consent-box input { width: 20px; height: 20px; accent-color: var(--gold); cursor: pointer;}
+        .consent-box label { color: var(--text-main); font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 0;}
+
+        .submit-btn {
+            grid-column: 1 / -1; width: 100%; background: linear-gradient(135deg, var(--gold), #b8962e); color: #020617; border: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .submit-btn:disabled { background: #cbd5e1; color: #64748b; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .submit-btn:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); }
+
+        .success-modal { display: none; text-align: center; padding: 30px; animation: fadeIn 0.5s; }
+        .success-modal i { font-size: 60px; color: #22c55e; margin-bottom: 15px; }
+        .success-modal h3 { color: var(--text-main); font-size: 24px; margin-bottom: 10px; }
+        .success-modal p { color: var(--text-muted); font-size: 16px; margin-bottom: 20px; }
+        .order-id { background: var(--dark-blue); color: var(--gold); padding: 10px 20px; border-radius: 8px; font-size: 20px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; display: inline-block;}
+        .wa-group-btn { display: inline-block; background: #25D366; color: white; padding: 12px 25px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 16px; margin-top: 15px;}
+        .wa-group-btn:hover { background: #128C7E; }
+
+        #adminDashboard { display: none; padding: 20px; background: var(--bg-card); color: var(--text-main); border-radius: 15px; margin-top: 20px; max-width: 1100px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px; }
+        .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: var(--input-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color); text-align: center; }
+        .card h4 { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; }
+        .card span { font-size: 28px; font-weight: 900; color: var(--gold); }
+        .chart-container { width: 100%; height: 300px; background: var(--input-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); }
+
+        /* نافذة إدخال كلمة السر الاحترافية */
+        .password-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 25, 47, 0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+        .password-box {
+            background: var(--bg-card); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px;
+            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid var(--gold);
+        }
+        .password-box i { font-size: 40px; color: var(--gold); margin-bottom: 15px; }
+        .password-box h3 { color: var(--text-main); margin-bottom: 10px; font-size: 20px; }
+        .password-box p { color: var(--text-muted); margin-bottom: 20px; font-size: 14px; }
+        .password-box input {
+            width: 100%; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 8px;
+            font-size: 18px; margin-bottom: 20px; outline: none; text-align: center; 
+            background: var(--input-bg); color: var(--text-main); letter-spacing: 3px;
+        }
+        .password-box input:focus { border-color: var(--gold); }
+        .password-btns { display: flex; gap: 10px; justify-content: center; }
+        .password-btns button {
+            flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;
+        }
+        .btn-confirm { background: var(--gold); color: var(--dark-blue); }
+        .btn-cancel { background: var(--border-color); color: var(--text-muted); }
+        .btn-confirm:hover { background: #b8962e; }
+        .btn-cancel:hover { background: #cbd5e1; color: var(--text-main); }
+        #passErrorMsg { color: #ef4444; font-size: 14px; margin-top: 10px; display: none; font-weight: bold; }
+
+        @media(max-width: 768px) { .main-container { flex-direction: column; } .form-grid { grid-template-columns: 1fr; } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-screen">
+        <i class="fa-solid fa-landmark-dome"></i>
+        <h1>أهلاً بك في منصة</h1>
+        <h2>الأستاذ حمد محمد عبدالله</h2>
+    </div>
+
+    <!-- نافذة كلمة المرور الاحترافية -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-box">
+            <i class="fa-solid fa-lock"></i>
+            <h3>لوحة تحكم المعلم</h3>
+            <p>الرجاء إدخال كلمة المرور للوصول إلى الإحصائيات</p>
+            <input type="password" id="adminPassInput" placeholder="••••">
+            <div class="password-btns">
+                <button class="btn-confirm" id="confirmPassBtn">دخول</button>
+                <button class="btn-cancel" id="cancelPassBtn">إلغاء</button>
+            </div>
+            <p id="passErrorMsg">كلمة المرور غير صحيحة!</p>
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-text" id="progressText">0% مكتمل</div>
+
+    <div class="floating-controls">
+        <button class="float-btn" id="themeToggle" title="الوضع الليلي"><i class="fa-solid fa-moon"></i></button>
+        <button class="float-btn" id="scrollTopBtn" title="للأعلى"><i class="fa-solid fa-arrow-up"></i></button>
+        <button class="float-btn" id="dashboardBtn" title="لوحة التحكم (للمعلم)"><i class="fa-solid fa-chart-pie"></i></button>
+    </div>
+
+    <div class="main-container" id="mainContainer">
+        <!-- النصف الأيمن -->
+        <div class="profile-section">
+            <div class="bg-animated-icons">
+                <i class="fa-solid fa-earth-africa"></i>
+                <i class="fa-solid fa-hourglass-half"></i>
+                <i class="fa-solid fa-compass"></i>
+            </div>
+            <div class="profile-content">
+                <div class="logo-icon"><i class="fa-solid fa-landmark-dome"></i></div>
+                
+                <img src="hamad.jpg" 
+                     onerror="this.onerror=null; this.src='hamad.jpeg'; this.onerror=function(){this.src='hamad.png'};" 
+                     alt="الأستاذ حمد محمد عبدالله" 
+                     class="profile-img" 
+                     id="profileImg">
+                
+                <h2>الأستاذ حمد محمد عبدالله</h2>
+                <p>ليسانس تاريخ وحضارة - جامعة الأزهر<br>معلم الدراسات الاجتماعية والتاريخ</p>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/share/195WSVzGjo/" target="_blank" title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="https://t.me/Hamad_mohammed1719" target="_blank" title="تليجرام"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="https://wa.me/201555166426" target="_blank" title="واتساب"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- النصف الأيسر -->
+        <div class="form-section">
+            <div class="form-watermarks">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <i class="fa-solid fa-landmark"></i>
+            </div>
+
+            <div class="form-content-wrapper" id="formWrapper">
+                <h3>استمارة الحجز الإلكتروني</h3>
+                <form id="bookingForm" class="form-grid">
+                    
+                    <div class="input-group"><label>اسم الطالب الثلاثي</label><div class="input-wrapper"><i class="fa-solid fa-user-graduate"></i><input type="text" id="fullname" class="save-state req-field" placeholder="أدخل اسم الطالب" required></div></div>
+                    <div class="input-group"><label>النوع</label><div class="input-wrapper"><i class="fa-solid fa-venus-mars"></i><select id="gender" class="save-state req-field" required><option value="" disabled selected>اختر النوع</option><option value="ذكر">ذكر</option><option value="أنثى">أنثى</option></select></div></div>
+                    <div class="input-group"><label>اسم ولي الأمر</label><div class="input-wrapper"><i class="fa-solid fa-user-tie"></i><input type="text" id="parentName" class="save-state req-field" placeholder="أدخل اسم ولي الأمر" required></div></div>
+                    <div class="input-group"><label>صلة القرابة</label><div class="input-wrapper"><i class="fa-solid fa-people-arrows"></i><select id="guardianRelation" class="save-state req-field" required><option value="" disabled selected>اختر صلة القرابة</option><option value="الأب">الأب</option><option value="الأم">الأم</option><option value="الأخ / الأخت">الأخ / الأخت</option><option value="أخرى">أخرى</option></select></div></div>
+                    <div class="input-group"><label>مستوى الطالب</label><div class="input-wrapper"><i class="fa-solid fa-star"></i><select id="studentLevel" class="save-state req-field" required><option value="" disabled selected>تقييم المستوى</option><option value="ممتاز">ممتاز</option><option value="جيد جداً">جيد جداً</option><option value="جيد">جيد</option><option value="يحتاج لمتابعة">يحتاج لمتابعة</option></select></div></div>
+                    
+                    <div class="input-group"><label>نظام التعليم</label><div class="input-wrapper"><i class="fa-solid fa-building-columns"></i><select id="educationType" class="save-state req-field" required><option value="" disabled selected>اختر النظام</option><option value="تعليم عام">تعليم عام</option><option value="تعليم أزهري">تعليم أزهري</option></select></div></div>
+                    
+                    <div class="input-group"><label>المرحلة / الصف الدراسي</label><div class="input-wrapper"><i class="fa-solid fa-book-open"></i><select id="grade" class="save-state req-field" required><option value="" disabled selected>اختر النظام أولاً</option></select></div></div>
+
+                    <div class="input-group"><label>المدرسة / المعهد</label><div class="input-wrapper"><i class="fa-solid fa-school"></i><input type="text" id="school" class="save-state req-field" placeholder="اسم المدرسة" required></div></div>
+                    <div class="input-group"><label>نوع الحجز</label><div class="input-wrapper"><i class="fa-solid fa-tags"></i><select id="bookingType" class="save-state req-field" required><option value="" disabled selected>اختر النوع</option><option value="أونلاين (Online)">أونلاين (Online)</option><option value="حضور في السنتر">حضور في السنتر</option><option value="مجموعة خاصة">مجموعة خاصة</option></select></div></div>
+                    <div class="input-group"><label>واتساب الطالب</label><div class="input-wrapper"><i class="fa-brands fa-whatsapp"></i><input type="tel" id="studentPhone" class="save-state req-field" placeholder="رقم الطالب" required></div></div>
+                    <div class="input-group"><label>تلفون ولي الأمر</label><div class="input-wrapper"><i class="fa-solid fa-phone"></i><input type="tel" id="parentPhone" class="save-state req-field" placeholder="رقم ولي الأمر" required></div></div>
+                    <div class="input-group"><label>المركز / المدينة</label><div class="input-wrapper"><i class="fa-solid fa-location-dot"></i><input type="text" id="city" class="save-state req-field" placeholder="مثال: أسيوط" required></div></div>
+                    <div class="input-group"><label>ميعاد التواصل</label><div class="input-wrapper"><i class="fa-solid fa-clock"></i><input type="text" id="contactTime" class="save-state req-field" placeholder="من 5 لـ 8 مساءً" required></div></div>
+                    <div class="input-group full-width"><label>هل يدرس معنا إخوة؟</label><div class="input-wrapper"><i class="fa-solid fa-users"></i><select id="hasSiblings" class="save-state req-field" required><option value="" disabled selected>اختر</option><option value="نعم">نعم</option><option value="لا">لا</option></select></div></div>
+                    <div class="input-group full-width"><label>كيف تعرفت علينا؟</label><div class="input-wrapper"><i class="fa-solid fa-bullhorn"></i><select id="source" class="save-state req-field" required><option value="" disabled selected>اختر</option><option value="فيسبوك">فيسبوك</option><option value="تليجرام">تليجرام</option><option value="صديق">صديق</option><option value="أخرى">أخرى</option></select></div></div>
+                    <div class="input-group full-width"><label>ملاحظات إضافية</label><div class="input-wrapper"><i class="fa-solid fa-pen-to-square"></i><textarea id="notes" class="save-state" placeholder="ملاحظاتك..."></textarea></div></div>
+                    
+                    <div class="full-width consent-box">
+                        <input type="checkbox" id="consentCheck" required>
+                        <label for="consentCheck">أقر بأن جميع البيانات المدخلة صحيحة وعلى مسؤوليتي.</label>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="submit-btn" disabled>
+                        تأكيد الحجز الآن <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="form-content-wrapper success-modal" id="successModal">
+                <i class="fa-solid fa-circle-check"></i>
+                <h3>🎉 تم تسجيل طلبك بنجاح!</h3>
+                <p>قم بالضغط على الزر أدناه لتأكيد حجزك عبر الواتساب.</p>
+                <div class="order-id" id="displayOrderId"></div>
+                <br>
+                <button id="whatsappRedirectBtn" class="wa-group-btn" style="border: none; cursor: pointer; margin-bottom: 10px;">
+                    <i class="fa-brands fa-whatsapp"></i> إرسال الحجز للأستاذ حمد
+                </button>
+                <br>
+                <a href="https://chat.whatsapp.com/Ir8gf1T1o1HEtKICJuf5R6" target="_blank" class="wa-group-btn" style="background: var(--dark-blue);">
+                    <i class="fa-solid fa-users"></i> انضم لجروب الواتساب الآن
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminDashboard">
+        <div class="dash-header">
+            <h2><i class="fa-solid fa-chart-pie"></i> إحصائيات الحجوزات (استعراض الواجهة)</h2>
+            <button onclick="document.getElementById('adminDashboard').style.display='none'" style="padding:5px 15px; border-radius:5px; background:red; color:white; border:none; cursor:pointer;">إغلاق</button>
+        </div>
+        <div class="dash-cards">
+            <div class="card"><h4>إجمالي الطلاب</h4><span>154</span></div>
+            <div class="card"><h4>أونلاين</h4><span>82</span></div>
+            <div class="card"><h4>في السنتر</h4><span>72</span></div>
+            <div class="card"><h4>المحافظات</h4><span>4</span></div>
+        </div>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const myWhatsAppNumber = "201555166426";
+        const form = document.getElementById('bookingForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const consentCheck = document.getElementById('consentCheck');
+        const reqFields = document.querySelectorAll('.req-field');
+        const educationTypeSelect = document.getElementById('educationType');
+        const gradeSelect = document.getElementById('grade');
+
+        const gradesData = {
+            "تعليم عام": [
+                "الصف الرابع الابتدائي",
+                "الصف الخامس الابتدائي",
+                "الصف السادس الابتدائي",
+                "الصف الأول الإعدادي",
+                "الصف الثاني الإعدادي",
+                "الصف الثالث الإعدادي",
+                "الصف الأول الثانوي",
+                "الصف الثاني الثانوي",
+                "الصف الثالث الثانوي"
+            ],
+            "تعليم أزهري": [
+                "الصف الرابع الابتدائي أزهري",
+                "الصف الخامس الابتدائي أزهري",
+                "الصف السادس الابتدائي أزهري",
+                "الصف الأول الإعدادي أزهري",
+                "الصف الثاني الإعدادي أزهري",
+                "الصف الثالث الإعدادي أزهري",
+                "الصف الأول الثانوي أزهري",
+                "الصف الثاني الثانوي أزهري",
+                "الصف الثالث الثانوي أزهري"
+            ]
+        };
+
+        educationTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            gradeSelect.innerHTML = '<option value="" disabled selected>اختر الصف الدراسي</option>';
+            
+            if (gradesData[selectedType]) {
+                gradesData[selectedType].forEach(grade => {
+                    let opt = document.createElement('option');
+                    opt.value = grade;
+                    opt.textContent = grade;
+                    gradeSelect.appendChild(opt);
+                });
+            }
+            
+            gradeSelect.classList.add('dynamic-animate');
+            setTimeout(() => { gradeSelect.classList.remove('dynamic-animate'); }, 500);
+
+            updateProgress();
+        });
+
+        const successAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+
+        function updateProgress() {
+            let filled = 0;
+            reqFields.forEach(field => { if(field.value.trim() !== "") filled++; });
+            let percent = Math.round((filled / reqFields.length) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = percent + '% مكتمل';
+            
+            submitBtn.disabled = !(percent === 100 && consentCheck.checked);
+        }
+
+        document.querySelectorAll('.save-state').forEach(el => {
+            if(localStorage.getItem(el.id)) {
+                el.value = localStorage.getItem(el.id);
+                if(el.id === 'educationType' && el.value) {
+                    educationTypeSelect.dispatchEvent(new Event('change'));
+                    if(localStorage.getItem('grade')) {
+                        setTimeout(() => { gradeSelect.value = localStorage.getItem('grade'); updateProgress(); }, 50);
+                    }
+                }
+            }
+            el.addEventListener('input', () => { localStorage.setItem(el.id, el.value); updateProgress(); });
+            el.addEventListener('change', () => { localStorage.setItem(el.id, el.value); updateProgress(); });
+        });
+        
+        consentCheck.addEventListener('change', updateProgress);
+        updateProgress();
+
+        const themeBtn = document.getElementById('themeToggle');
+        themeBtn.onclick = () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            themeBtn.innerHTML = isDark ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+        };
+
+        window.onscroll = () => {
+            document.getElementById('scrollTopBtn').style.display = window.scrollY > 300 ? 'flex' : 'none';
+        };
+        document.getElementById('scrollTopBtn').onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
+
+        let finalMessageUrl = "";
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const orderId = 'HM-2026-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'جاري التجهيز <i class="fa-solid fa-spinner fa-spin"></i>';
+
+            const formData = {
+                name: document.getElementById('fullname').value,
+                gender: document.getElementById('gender').value,
+                parentName: document.getElementById('parentName').value,
+                relation: document.getElementById('guardianRelation').value,
+                level: document.getElementById('studentLevel').value,
+                educationType: document.getElementById('educationType').value,
+                grade: document.getElementById('grade').value,
+                school: document.getElementById('school').value,
+                bookingType: document.getElementById('bookingType').value,
+                studentPhone: document.getElementById('studentPhone').value,
+                parentPhone: document.getElementById('parentPhone').value,
+                city: document.getElementById('city').value,
+                contactTime: document.getElementById('contactTime').value,
+                hasSiblings: document.getElementById('hasSiblings').value,
+                source: document.getElementById('source').value,
+                notes: document.getElementById('notes').value || "لا توجد ملاحظات"
+            };
+
+            let message = `مرحباً أستاذ حمد، أود تأكيد الحجز:\n\n` +
+                          `🔢 رقم الطلب: ${orderId}\n` +
+                          `👤 اسم الطالب: ${formData.name}\n` +
+                          `🚻 النوع: ${formData.gender}\n` +
+                          `👨‍👩‍👦 ولي الأمر: ${formData.parentName} (${formData.relation})\n` +
+                          `⭐ تقييم العام الماضي: ${formData.level}\n` +
+                          `🏛️ نظام التعليم: ${formData.educationType}\n` +
+                          `📚 المرحلة/الصف: ${formData.grade}\n` +
+                          `🏫 المدرسة/المعهد: ${formData.school}\n` +
+                          `🏷️ نوع الحجز: ${formData.bookingType}\n` +
+                          `📍 المركز/المدينة: ${formData.city}\n` +
+                          `📱 واتساب الطالب: ${formData.studentPhone}\n` +
+                          `📞 هاتف ولي الأمر: ${formData.parentPhone}\n` +
+                          `⏰ ميعاد التواصل: ${formData.contactTime}\n` +
+                          `👥 إخوة بالمنصة: ${formData.hasSiblings}\n` +
+                          `📢 المصدر: ${formData.source}\n` +
+                          `📝 ملاحظات: ${formData.notes}`;
+
+            finalMessageUrl = `https://wa.me/${myWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+
+            setTimeout(() => { showSuccess(orderId); }, 800);
+        });
+
+        function showSuccess(orderId) {
+            localStorage.clear();
+            successAudio.play();
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+
+            document.getElementById('formWrapper').style.display = 'none';
+            document.getElementById('displayOrderId').innerText = 'رقم الطلب: ' + orderId;
+            document.getElementById('successModal').style.display = 'block';
+        }
+
+        document.getElementById('whatsappRedirectBtn').onclick = () => {
+            window.open(finalMessageUrl, '_blank');
+        };
+
+        // --- برمجة نافذة الإدمن الاحترافية (كلمة المرور) ---
+        const passwordOverlay = document.getElementById('passwordOverlay');
+        const adminPassInput = document.getElementById('adminPassInput');
+        const passErrorMsg = document.getElementById('passErrorMsg');
+        let chartRendered = false;
+
+        document.getElementById('dashboardBtn').onclick = () => {
+            passwordOverlay.style.display = 'flex';
+            adminPassInput.value = '';
+            passErrorMsg.style.display = 'none';
+            setTimeout(() => adminPassInput.focus(), 100);
+        };
+
+        document.getElementById('cancelPassBtn').onclick = () => {
+            passwordOverlay.style.display = 'none';
+        };
+
+        function verifyPassword() {
+            if(adminPassInput.value === "1234") {
+                passwordOverlay.style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+                
+                if(!chartRendered) {
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['أول إعدادي', 'ثاني إعدادي', 'ثالث إعدادي', 'أول ثانوي'],
+                            datasets: [{ label: 'عدد الطلاب', data: [30, 45, 60, 19], backgroundColor: '#D4AF37' }]
+                        },
+                        options: { maintainAspectRatio: false }
+                    });
+                    chartRendered = true;
+                }
+            } else {
+                passErrorMsg.style.display = 'block';
+            }
+        }
+
+        document.getElementById('confirmPassBtn').onclick = verifyPassword;
+        adminPassInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verifyPassword();
+        });
+
+    </script>
+</body>
+</html>
